@@ -3,12 +3,12 @@ properties([
         string(
             defaultValue: 'dev',
             name: 'Environment',
-            description: 'environment to deploy but doing on local so doesnt matter initially....'
+            description: 'Environment to deploy, but doing it on local so doesn\'t matter initially...'
         ),
         choice(
             choices: ['plan', 'apply', 'destroy'],
             name: 'terraform_actions',
-            description: 'choose Terraform action'
+            description: 'Choose Terraform action'
         )
     ])
 ])
@@ -19,42 +19,49 @@ pipeline {
     stages {
         stage('preparing') {
             steps {
-                sh 'echo preparing'
+                echo 'Preparing the environment...'
             }
         }
 
-        stage('pulling code from github') {
+        stage('pulling code from GitHub') {
             steps {
                 git branch: 'main', url: 'https://github.com/Samiabbasi1/eks-setup-two.git'
             }
         }
 
-        stage('init') {
+        stage('terraform init') {
             steps {
-                sh 'terraform init'
+                dir('/root') {  
+                    sh 'terraform init'
+                }
             }
         }
 
-        stage('validate') {
+        stage('terraform validate') {
             steps {
-                sh 'terraform validate'
+                dir('/root') {  
+                    sh 'terraform validate'
+                }
             }
         }
 
-        stage('action') {
+        stage('terraform action') {
             steps {
-                script {
-                    if (params.terraform_actions == 'plan') {
-                        sh "terraform plan"
-                    } else if (params.terraform_actions == 'apply') {
-                        sh "terraform apply --auto-approve"
-                    } else if (params.terraform_actions == 'destroy') {
-                        sh "terraform destroy --auto-approve"
-                    } else {
-                        error "Invalid value for action"
+                dir('/root') {  
+                    script {
+                        if (params.terraform_actions == 'plan') {
+                            sh "terraform plan"
+                        } else if (params.terraform_actions == 'apply') {
+                            sh "terraform apply --auto-approve"
+                        } else if (params.terraform_actions == 'destroy') {
+                            sh "terraform destroy --auto-approve"
+                        } else {
+                            error "Invalid value for action"
+                        }
                     }
                 }
             }
         }
     }
 }
+
